@@ -1,0 +1,232 @@
+
+/*
+   Author: Kassidi Knight
+   
+   Purpose:  This lab displays the number of miles and shelters 
+   on the Appalachian Trail for each state that the trail runs 
+   through. It also calculates the total number of miles and 
+   shelters on the trail. 
+    
+   Test Cases:  
+		1. Running the program and trying to open a non-existent input
+			file. 
+		2. Running the program and trying to open an empty input file. 
+		3. Running the program and reading in fewer than 14 struct array 
+			elements, sorting them, making the output neat, and totaling 
+			the elements. 
+		4. Running the program and reading in exactly 14 struct array 
+			elements, sorting them, making the output neat, and totaling 
+			the elements.
+		5. Running the program and reading in more than 14 struct array 
+			elements, "chopping off" the excess data by stopping the input file read at 14 elements, sorting the 14, making the output neat, and totaling only the 14 elements.
+
+*/
+
+#include <iostream> 
+#include <iomanip> 
+#include <fstream>
+#include <cstdlib>
+#include <string>
+#include <cctype>
+#include <stdio.h>
+#include <string.h>
+
+using namespace std;
+
+//constants here
+const int MAX_STATES = 14;
+const int MAX_NAME_LENGTH = 31;
+
+//struct definition here 
+struct ATState {
+	char name[MAX_NAME_LENGTH];
+	double miles = 0;
+	int shelters = 0;
+	
+};
+
+
+//function declarations here. Function name, pars, pre, post, ret
+
+/*
+*readData: reads ATState structures from file
+*Parameters: in, the input file, and array, the array to be filled
+*Precondition: The input file has already been opened
+*Returns: numRead, the number of array elements read
+
+*/
+int readData( ifstream&, ATState[], double &totalMiles, int &totalShelters );
+
+
+/* 
+*printData: prints array of ATState structures
+*Parameters: the array and n, the # of structures to print  
+*Returns: nothing
+*/
+void printData( ATState[], int, double totalMiles, int totalShelters );
+
+/*
+*selectionSort: sorts the structure array by name (ASCII value)
+*Parameters: the structure array and the number of elements 
+	in the array
+*Precondition: The array has been filled
+*Postcondition: The array elements have been sorted by name
+
+*/
+void selectionSort(ATState[], int);
+
+
+int main()
+{
+    //declare instance of structure array
+    ATState array[MAX_STATES]; 
+    int numRead, arraySize;
+    ifstream in;
+	char testChar;
+
+	//Variables for totals 
+	double totalMiles = 0;
+	int totalShelters = 0;
+
+    //open the input file
+    char filename[256];
+    cout << "Welcome to the Appalachian Trail (AT) Information System. \nEnter AT file name: ";
+    cin.getline( filename, 256 );
+    in.open( filename );
+
+	if( in.fail() ){ //Open failed, nonexistent file
+		cout << "Input file " << filename << " does not exist.\nThank you for using the AT Data Information System." << endl;
+	}else //file exists
+	 {
+		 in.get( testChar );
+		 	if( in.eof() ){ //empty file
+				cout << "Input file " << filename << " is empty. \nThank you for using the AT Data Information System." << endl;
+		 	}else{
+				 	in.putback( testChar ); //file exists, isn't empty 
+				 	numRead = readData(in, array, totalMiles, totalShelters);
+					selectionSort(array, numRead);
+					printData(array, numRead, totalMiles, totalShelters); 
+					cout << "\nThank you for using the AT Data Information System.\n";
+					
+			 }
+	 }
+
+	in.close();
+}
+
+
+//Function definitions start here 
+int readData( ifstream& in, ATState array[], double &totalMiles, int &totalShelters ){
+
+   char c;
+   int numRead = 0;
+   
+   
+   in.getline(array[numRead].name, MAX_NAME_LENGTH); //Initial read
+
+   while ( !in.eof() && numRead < MAX_STATES ){
+	    
+		in >> array[numRead].miles;
+		//Total the miles
+	    totalMiles += array[numRead].miles;
+
+		in >> array[numRead].shelters;
+		//Total the number of shelters
+		totalShelters += array[numRead].shelters;
+		in.ignore(200, '\n');
+
+		numRead++;
+        	if( numRead < MAX_STATES ){
+        		in.getline(array[numRead].name, MAX_NAME_LENGTH);
+        	}     
+   } 
+   return( numRead );
+}
+
+
+
+
+void printData( ATState array[], int n, double totalMiles, int totalShelters ){
+
+	int i;
+	cout << setw(32) << left << "Name" 
+		 << setw(10) << left << "Miles"
+		 << setw(8) << left << "Shelters" 
+		 << endl;  
+	cout << setw(50) << setfill('-') << "-" << setfill(' ') << endl;
+	for(i = 0; i < n; i++ )
+   	{  
+		cout << setw(MAX_NAME_LENGTH) << left << array[i].name;
+		cout << setw(6) << right << array[i].miles;  
+		cout << setw(10) << right << array[i].shelters << endl;
+		
+   }
+   cout << setw(50) << setfill('-') << "-" << setfill(' ') << endl;
+   cout << setw(28) << left << "\nTOTALS" 
+   		<< setw(10) << right << totalMiles 
+		<< setw(10) << right <<totalShelters;
+
+}
+
+
+
+
+void selectionSort(ATState array[], int numStates){
+ 
+	//tolower only works with single characters!!
+ 
+	/*
+	loop i = 0 to numStates (count)
+	loop j = 0 stop at the null character '\0'
+	if use isupper on states[i].name[j]
+	states[i].name[j] = tolower( states[i].name[j] )
+	*/
+
+   int r;
+   //Fix the wonky input file data here 
+   for(int q = 0; q < numStates; q++)
+      {
+		  for(r = 0; array[q].name[r] != '\0'; r++)
+          array[q].name[r] = tolower(array[q].name[r]);
+		  r++;
+      }
+
+
+	/*
+	//uppercase first letter
+	array[x].name[0] = use toupper
+	loop y = 1 stop at the null char '\0'
+	if array[x].name[y] is blank 
+	uppercase array[y+1]
+	*/
+
+	int x;
+	for(x = 0; x < numStates; x++){
+
+		array[x].name[0] = toupper(array[x].name[0]);
+
+		for(int y = 1; array[x].name[y] != '\0'; y++){
+
+			if(array[x].name[y] == ' '){
+				array[x].name[y+1] = toupper(array[x].name[y+1]);
+			
+			}
+		}
+
+	}
+   ATState temp;
+
+   for(int i = 0; i < numStates-1; i++){
+      int iMin = i;
+
+      for(int j = i + 1; j < numStates; j++){
+         if(strcmp(array[j].name, array[iMin].name) < 0) //why < 0???
+         iMin = j;
+      }
+
+      temp = array[i];
+      array[i] = array[iMin];
+      array[iMin] = temp;
+   }
+
+}
